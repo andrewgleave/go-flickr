@@ -21,7 +21,7 @@ const (
 )
 
 type Request struct {
-	ApiKey string
+	APIKey string
 	Method string
 	Args   map[string]string
 }
@@ -55,22 +55,22 @@ func (request *Request) Sign(secret string) {
 	// Remove api_sig
 	delete(args, "api_sig")
 
-	sorted_keys := make([]string, len(args)+2)
+	sortedKeys := make([]string, len(args)+2)
 
-	args["api_key"] = request.ApiKey
+	args["api_key"] = request.APIKey
 	args["method"] = request.Method
 
 	// Sort array keys
 	i := 0
 	for k := range args {
-		sorted_keys[i] = k
+		sortedKeys[i] = k
 		i++
 	}
-	sort.Strings(sorted_keys)
+	sort.Strings(sortedKeys)
 
 	// Build out ordered key-value string prefixed by secret
 	s := secret
-	for _, key := range sorted_keys {
+	for _, key := range sortedKeys {
 		if args[key] != "" {
 			s += fmt.Sprintf("%s%s", key, args[key])
 		}
@@ -93,7 +93,7 @@ func (request *Request) Sign(secret string) {
 func (request *Request) URL() string {
 	args := request.Args
 
-	args["api_key"] = request.ApiKey
+	args["api_key"] = request.APIKey
 	args["method"] = request.Method
 
 	s := endpoint + encodeQuery(args)
@@ -101,7 +101,7 @@ func (request *Request) URL() string {
 }
 
 func (request *Request) Execute() (response string, ret error) {
-	if request.ApiKey == "" || request.Method == "" {
+	if request.APIKey == "" || request.Method == "" {
 		return "", Error("Need both API key and method")
 	}
 
@@ -130,8 +130,8 @@ func encodeQuery(args map[string]string) string {
 	return s.String()
 }
 
-func (request *Request) buildPost(url_ string, filename string, filetype string) (*http.Request, error) {
-	real_url, _ := url.Parse(url_)
+func (request *Request) buildPost(u string, filename string, filetype string) (*http.Request, error) {
+	realURL, _ := url.Parse(u)
 
 	f, err := os.Open(filename)
 	if err != nil {
@@ -142,9 +142,9 @@ func (request *Request) buildPost(url_ string, filename string, filetype string)
 	if err != nil {
 		return nil, err
 	}
-	f_size := stat.Size()
+	formSize := stat.Size()
 
-	request.Args["api_key"] = request.ApiKey
+	request.Args["api_key"] = request.APIKey
 
 	boundary, end := "----###---###--flickr-go-rules", "\r\n"
 
@@ -161,7 +161,7 @@ func (request *Request) buildPost(url_ string, filename string, filetype string)
 
 	footer := bytes.NewBufferString(end + "--" + boundary + "--" + end)
 
-	body_len := int64(header.Len()) + int64(footer.Len()) + f_size
+	bodyLen := int64(header.Len()) + int64(footer.Len()) + formSize
 
 	r, w := io.Pipe()
 	go func() {
@@ -178,16 +178,16 @@ func (request *Request) buildPost(url_ string, filename string, filetype string)
 		w.Close()
 	}()
 
-	http_header := make(http.Header)
-	http_header.Add("Content-Type", "multipart/form-data; boundary="+boundary)
+	httpHeader := make(http.Header)
+	httpHeader.Add("Content-Type", "multipart/form-data; boundary="+boundary)
 
 	postRequest := &http.Request{
 		Method:        "POST",
-		URL:           real_url,
+		URL:           realURL,
 		Host:          apiHost,
-		Header:        http_header,
+		Header:        httpHeader,
 		Body:          r,
-		ContentLength: body_len,
+		ContentLength: bodyLen,
 	}
 	return postRequest, nil
 }
@@ -212,7 +212,7 @@ func (request *Request) Replace(filename string, filetype string) (response *Res
 
 func sendPost(postRequest *http.Request) (response *Response, err error) {
 	// Create and use TCP connection (lifted mostly wholesale from http.send)
-	client := &http.DefaultClient
+	client := http.DefaultClient
 	resp, err := client.Do(postRequest)
 
 	if err != nil {

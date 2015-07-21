@@ -7,7 +7,7 @@ import (
 
 func TestGetInfo(t *testing.T) {
 	r := &Request{
-		ApiKey: "YOURAPIKEYHERE",
+		APIKey: "YOURAPIKEYHERE",
 		Method: "flickr.photos.getInfo",
 		Args: map[string]string{
 			"photo_id": "5356343650",
