@@ -100,9 +100,9 @@ func (request *Request) URL() string {
 	return s
 }
 
-func (request *Request) Execute() (response string, ret error) {
+func (request *Request) Execute() (body []byte, ret error) {
 	if request.APIKey == "" || request.Method == "" {
-		return "", Error("Need both API key and method")
+		return nil, Error("Need both API key and method")
 	}
 
 	s := request.URL()
@@ -110,11 +110,11 @@ func (request *Request) Execute() (response string, ret error) {
 	res, err := http.Get(s)
 	defer res.Body.Close()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	body, _ := ioutil.ReadAll(res.Body)
-	return string(body), nil
+	body, _ = ioutil.ReadAll(res.Body)
+	return body, nil
 }
 
 func encodeQuery(args map[string]string) string {
