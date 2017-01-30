@@ -2,6 +2,7 @@ package flickr
 
 import (
 	"fmt"
+	"io/ioutil"
 	"testing"
 )
 
@@ -19,9 +20,16 @@ func TestGetInfo(t *testing.T) {
 
 	fmt.Println(r.URL())
 
-	resp, err := r.Execute()
+	res, err := r.Execute()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer res.Close()
+	body, err = ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(resp)
+	fmt.Println(body)
 }
