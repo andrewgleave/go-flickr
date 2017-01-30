@@ -100,7 +100,7 @@ func (request *Request) URL() string {
 	return s
 }
 
-func (request *Request) Execute() (*Response, error) {
+func (request *Request) Execute() (*http.Response, error) {
 	if request.APIKey == "" || request.Method == "" {
 		return nil, Error("Need both API key and method")
 	}
